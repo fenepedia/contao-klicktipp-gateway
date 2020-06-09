@@ -55,9 +55,16 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
             foreach ($messageParams as $param) {
                 $key = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($param['key'], $tokens);
                 $value = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($param['value'], $tokens);
+
+                // Do some type casting
+                if (is_numeric($value)) {
+                    $value = (float) $value;
+                }
+
                 $processedParams[$key] = $value;
             }
 
+            System::log('Updating Klick-Tipp subscriber "'.$subscriberId.'" ('.$email.') with '.json_encode($processedParams), __METHOD__, TL_GENERAL);
             $kt->subscriber_update($subscriberId, $processedParams);
             $this->checkError($kt);
 
