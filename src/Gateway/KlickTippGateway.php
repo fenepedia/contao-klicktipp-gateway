@@ -99,18 +99,24 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
         $kt = $this->getConnector();
 
-        /** @var array $tags */
-        $tags = $kt->tag_index();
-        $this->checkError($kt);
+        $tagId = null;
 
-        if (empty($tags)) {
-            throw new KlickTippGatewayException('No tags defined.');
-        }
+        if (is_numeric($tag)) {
+            $tagId = $tag;
+        } else {
+            /** @var array $tags */
+            $tags = $kt->tag_index();
+            $this->checkError($kt);
 
-        $tagId = array_search($tag, $tags, true);
+            if (empty($tags)) {
+                throw new KlickTippGatewayException('No tags defined.');
+            }
 
-        if (false === $tagId) {
-            throw new KlickTippGatewayException('Tag "'.$tag.'" not found.');
+            $tagId = array_search($tag, $tags, true);
+
+            if (false === $tagId) {
+                throw new KlickTippGatewayException('Tag "'.$tag.'" not found.');
+            }
         }
 
         System::log('Tagging Klick-Tipp subscriber "'.$email.'" with "'.$tag.'"', __METHOD__, TL_GENERAL);
