@@ -1,8 +1,10 @@
-Contao Klick-Tipp Gateway
+Contao KlickTipp Gateway
 =========================
 
-API Connection between Contao Nofitication Center and Klick-Tipp E-Mail-Marketing.
+API Anbindung zu KlickTipp über ein Gateway des Notification-Center.
 
-Minimal Klick-Tipp Premium:
-https://go.fenepedia.de/klicktipp
+Mit dieser Erweiterung für Contao kannst du deine Kontakte von KlickTipp aktualisieren.
+Die Extension stellt dazu einen eigenen Gateway für das Notification Center bereit.
 
+Hinweise zur Konfiguration unter:
+https://www.fenepedia.de/contao-klicktipp-gateway
