@@ -3,6 +3,7 @@
     "description": "Contao extension to provide a Notification Center Gateway for the Klick-Tipp API.",
     "type": "contao-bundle",
     "license": "LGPL-3.0-or-later",
+    "homepage": "https://www.fenepedia.de/contao-klicktipp-gateway",
     "authors": [
         {
             "name": "Fritz Michael Gschwantner",
