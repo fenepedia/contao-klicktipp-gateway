@@ -1,10 +1,21 @@
 {
     "name": "fenepedia/contao-klicktipp-gateway",
-    "description": "Contao extension to provide a Notification Center Gateway for the Klick-Tipp API.",
+    "description": "Contao extension to provide a Notification Center Gateway for the KlickTipp API.",
     "type": "contao-bundle",
     "license": "LGPL-3.0-or-later",
     "homepage": "https://www.fenepedia.de/contao-klicktipp-gateway",
+    "keywords": [
+        "Klick-Tipp",
+        "KickTipp",
+        "Contao",
+        "Notification Center"
+    ],
     "authors": [
+        {
+            "name": "Fenepedia",
+            "homepage": "https://www.fenepedia.de",
+            "role": "Owner"
+        },
         {
             "name": "Fritz Michael Gschwantner",
             "email": "fmg@inspiredminds.at",
@@ -28,5 +39,10 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.16"
+    },
+    "support": {
+        "issues": "https://github.com/fenepedia/contao-klicktipp-gateway/issues",
+        "docs": "https://www.fenepedia.de/contao-klicktipp-gateway",
+        "source": "https://github.com/fenepedia/contao-klicktipp-gateway"
     }
 }
