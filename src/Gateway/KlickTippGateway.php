@@ -59,6 +59,8 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
         if (empty($subscriberId)) {
             System::log('Could not find Klick-Tipp subscriber with email "'.$email.'"', __METHOD__, TL_GENERAL);
+
+            return;
         }
 
         $messageParams = StringUtil::deserialize($message->kt_parameters);
