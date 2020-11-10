@@ -15,3 +15,4 @@ $GLOBALS['TL_LANG']['tl_nc_message']['kt_action'] = ['Action', 'Action/Endpoint:
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_email'] = ['E-mail address', 'E-mail address with which to identify a subscriber.'];
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_parameters'] = ['Parameters', 'Parameters for the API request.'];
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_tag'] = ['Tag', 'Tag to be added to the subscriber.'];
+$GLOBALS['TL_LANG']['tl_nc_message']['kt_list_id'] = ['Double-Opt-In ID', 'The ID of the double-opt-in process.'];
