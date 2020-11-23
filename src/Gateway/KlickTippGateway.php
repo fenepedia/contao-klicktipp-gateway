@@ -73,7 +73,7 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
         $tagId = $this->getTagId($message, $tokens) ?: 0;
         $fields = $this->getParameters($message, $tokens);
 
-        $kt->subscriber_update($email, $listId, $tagId, $fields);
+        $kt->subscribe($email, $listId, $tagId, $fields);
         $this->checkError($kt);
 
         return true;
