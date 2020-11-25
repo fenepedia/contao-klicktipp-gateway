@@ -13,6 +13,6 @@ declare(strict_types=1);
 $GLOBALS['TL_LANG']['tl_nc_message']['klicktipp_legend'] = 'Klick-Tipp API Request Einstellungen';
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_action'] = ['Aktion', 'Aktion/Endpunkt: <a href="https://www.klick-tipp.com/handbuch/application-programming-interface-api">https://www.klick-tipp.com/handbuch/application-programming-interface-api</a>'];
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_email'] = ['E-Mail Adresse', 'E-mail Adresse mit der ein Subscriber identifiziert wird.'];
-$GLOBALS['TL_LANG']['tl_nc_message']['kt_parameters'] = ['Parameter', 'Parameter für den API Request.'];
+$GLOBALS['TL_LANG']['tl_nc_message']['kt_parameters'] = ['Parameter', 'Parameter für API-Request. Schlüssel = KlickTipp | Wert = Contao'];
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_tag'] = ['Tag', 'Tag der zum Subscriber hinzugefügt werden soll.'];
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_list_id'] = ['Double-Opt-In ID', 'Die ID des Double-Opt-In Prozesses.'];
