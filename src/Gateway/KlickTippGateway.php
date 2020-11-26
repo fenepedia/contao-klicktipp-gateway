@@ -58,21 +58,11 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
             throw new KlickTippGatewayException('Invalid email address given.');
         }
 
-        $kt = $this->getConnector();
-
-        $subscriberId = $kt->subscriber_search($email);
-        $this->checkError($kt);
-
-        if (!empty($subscriberId)) {
-            System::log('Klick-Tipp subscriber with email "'.$email.'" already existent', __METHOD__, TL_GENERAL);
-
-            return true;
-        }
-
         $listId = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($message->kt_list_id, $tokens) ?: 0;
         $tagId = $this->getTagId($message, $tokens) ?: 0;
         $fields = $this->getParameters($message, $tokens);
 
+        $kt = $this->getConnector();
         $kt->subscribe($email, $listId, $tagId, $fields);
         $this->checkError($kt);
 
