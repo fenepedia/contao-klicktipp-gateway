@@ -12,14 +12,14 @@ declare(strict_types=1);
 
 $GLOBALS['TL_DCA']['tl_nc_gateway']['fields']['kt_api_username'] = [
     'inputType' => 'text',
-    'eval' => ['mandatory' => true, 'maxlength' => 64, 'tl_class' => 'w50'],
+    'eval' => ['mandatory' => true, 'maxlength' => 64, 'tl_class' => 'w50', 'decodeEntities' => true, 'preserveTags' => true],
     'exclude' => true,
     'sql' => ['type' => 'string', 'length' => 64, 'default' => ''],
 ];
 
 $GLOBALS['TL_DCA']['tl_nc_gateway']['fields']['kt_api_password'] = [
     'inputType' => 'textStore',
-    'eval' => ['mandatory' => true, 'maxlength' => 64, 'tl_class' => 'w50'],
+    'eval' => ['mandatory' => true, 'maxlength' => 64, 'tl_class' => 'w50', 'decodeEntities' => true, 'preserveTags' => true],
     'exclude' => true,
     'sql' => ['type' => 'string', 'length' => 64, 'default' => ''],
 ];
