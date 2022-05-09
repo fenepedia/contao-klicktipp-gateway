@@ -38,11 +38,17 @@
         "contao-manager-plugin": "Fenepedia\\ContaoKlickTippGateway\\ContaoManager\\Plugin"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.16"
+        "friendsofphp/php-cs-fixer": "^2.16 || ^3.0"
     },
     "support": {
         "issues": "https://github.com/fenepedia/contao-klicktipp-gateway/issues",
         "docs": "https://www.fenepedia.de/contao-klicktipp-gateway",
         "source": "https://github.com/fenepedia/contao-klicktipp-gateway"
+    },
+    "config": {
+        "allow-plugins": {
+            "contao-components/installer": true,
+            "contao-community-alliance/composer-plugin": true
+        }
     }
 }
