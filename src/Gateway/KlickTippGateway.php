@@ -90,8 +90,16 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
         $params = $this->getParameters($message, $tokens);
 
+        // Check if a new email address should be submitted (#5)
+        $newemail = '';
+
+        if (isset($params['email'])) {
+            $newemail = $params['email'];
+            unset($params['email']);
+        }
+
         System::log('Updating Klick-Tipp subscriber "'.$subscriberId.'" ('.$email.') with '.json_encode($params), __METHOD__, TL_GENERAL);
-        $kt->subscriber_update($subscriberId, $params);
+        $kt->subscriber_update($subscriberId, $params, $newemail);
         $this->checkError($kt);
 
         return true;
