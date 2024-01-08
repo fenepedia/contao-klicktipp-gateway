@@ -16,6 +16,7 @@ use Contao\StringUtil;
 use Contao\System;
 use Contao\Validator;
 use Fenepedia\ContaoKlickTippGateway\Exception\KlickTippGatewayException;
+use Fenepedia\ContaoKlickTippGateway\Util;
 use Kazin8\KlickTipp\Connector;
 use NotificationCenter\Gateway\GatewayInterface;
 use NotificationCenter\Model\Message;
@@ -52,13 +53,13 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
     protected function subscribe(Message $message, array $tokens): bool
     {
-        $email = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($message->kt_email, $tokens);
+        $email = Util::recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
 
         if (empty($email) || !Validator::isEmail($email)) {
             throw new KlickTippGatewayException('Invalid email address given.');
         }
 
-        $listId = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($message->kt_list_id, $tokens) ?: 0;
+        $listId = Util::recursiveReplaceTokensAndTags((string) $message->kt_list_id, $tokens) ?: 0;
         $tagId = $this->getTagId($message, $tokens) ?: 0;
         $fields = $this->getParameters($message, $tokens);
 
@@ -71,7 +72,7 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
     protected function subscriberUpdate(Message $message, array $tokens): bool
     {
-        $email = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($message->kt_email, $tokens);
+        $email = Util::recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
 
         if (empty($email) || !Validator::isEmail($email)) {
             throw new KlickTippGatewayException('Invalid email address given.');
@@ -107,7 +108,7 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
     protected function tag(Message $message, array $tokens): bool
     {
-        $email = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($message->kt_email, $tokens);
+        $email = Util::recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
 
         if (empty($email) || !Validator::isEmail($email)) {
             throw new KlickTippGatewayException('Invalid email address given.');
@@ -154,7 +155,7 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
     private function getTagId(Message $message, array $tokens): ?string
     {
-        $tag = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($message->kt_tag, $tokens);
+        $tag = Util::recursiveReplaceTokensAndTags((string) $message->kt_tag, $tokens);
 
         if (empty($tag)) {
             return null;
@@ -189,8 +190,8 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
         $processedParams = [];
 
         foreach ($messageParams as $param) {
-            $key = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($param['key'], $tokens);
-            $value = \Haste\Util\StringUtil::recursiveReplaceTokensAndTags($param['value'], $tokens);
+            $key = Util::recursiveReplaceTokensAndTags((string) $param['key'], $tokens);
+            $value = Util::recursiveReplaceTokensAndTags((string) $param['value'], $tokens);
 
             // Do some type casting
             if (is_numeric($value)) {
