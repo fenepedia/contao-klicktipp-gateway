@@ -28,7 +28,7 @@
         "contao/core-bundle": "^4.9",
         "kazin8/klick-tipp": "^1.1",
         "symfony/http-kernel": "^4.4 || ^5.0 || ^6.0",
-        "terminal42/notification_center": "^1.5"
+        "terminal42/notification_center": "^1.5 || ^2.0"
     },
     "autoload": {
         "psr-4": {
