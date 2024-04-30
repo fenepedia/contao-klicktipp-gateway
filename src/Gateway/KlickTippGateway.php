@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fenepedia\ContaoKlickTippGateway\Gateway;
 
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\StringUtil;
 use Contao\Validator;
 use Fenepedia\ContaoKlickTippGateway\Config\KlickTippConfig;
@@ -24,6 +25,7 @@ class KlickTippGateway implements GatewayInterface
     public const NAME = 'klicktipp';
 
     public function __construct(
+        private readonly ContaoFramework $contaoFramework,
         private readonly Connector $connector,
         private readonly LoggerInterface $contaoGeneralLogger,
         private readonly LoggerInterface $contaoErrorLogger,
@@ -69,6 +71,8 @@ class KlickTippGateway implements GatewayInterface
 
     private function createKlickTippConfigStamp(Parcel $parcel): KlickTippConfigStamp
     {
+        $this->contaoFramework->initialize();
+
         $messageConfig = $parcel->getMessageConfig();
         $tokens = $parcel->getStamp(TokenCollectionStamp::class)->tokenCollection->forSimpleTokenParser();
         $email = Util::recursiveReplaceTokensAndTags($messageConfig->getString('kt_email'), $tokens);
