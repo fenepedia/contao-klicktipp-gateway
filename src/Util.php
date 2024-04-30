@@ -17,7 +17,7 @@ use Haste\Util\StringUtil;
 
 class Util
 {
-    /** 
+    /**
      * Compatibility layer to support both codefog/contao-haste v4 and v5.
      */
     public static function recursiveReplaceTokensAndTags(string $text, array $tokens, int $textFlags = 0): string

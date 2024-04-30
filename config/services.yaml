@@ -1,0 +1,17 @@
+parameters:
+    env(KLICKTIPP_API_URL): https://api.klick-tipp.com
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            $connector: '@fenepedia.contao_klick_tipp_gateway.connector'
+    
+    Fenepedia\ContaoKlickTippGateway\:
+        resource: ../src/
+        exclude: ../src/{ContaoManager,DependencyInjection,Exception}
+
+    fenepedia.contao_klick_tipp_gateway.connector:
+        class: Kazin8\KlickTipp\Connector
+        arguments: ['%env(KLICKTIPP_API_URL)%']

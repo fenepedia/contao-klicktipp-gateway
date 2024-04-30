@@ -17,6 +17,7 @@ use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
 use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
 use Fenepedia\ContaoKlickTippGateway\ContaoKlickTippGatewayBundle;
+use Terminal42\NotificationCenterBundle\Terminal42NotificationCenterBundle;
 
 class Plugin implements BundlePluginInterface
 {
@@ -24,7 +25,7 @@ class Plugin implements BundlePluginInterface
     {
         return [
             BundleConfig::create(ContaoKlickTippGatewayBundle::class)
-                ->setLoadAfter([ContaoCoreBundle::class, 'notification_center']),
+                ->setLoadAfter([ContaoCoreBundle::class, Terminal42NotificationCenterBundle::class]),
         ];
     }
 }

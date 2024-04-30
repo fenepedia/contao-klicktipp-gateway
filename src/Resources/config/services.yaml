@@ -1,8 +1,0 @@
-services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-    
-    Fenepedia\ContaoKlickTippGateway\:
-        resource: ../../
-        exclude: ../../{ContaoManager,DependencyInjection,Exception,Gateway,Resources}

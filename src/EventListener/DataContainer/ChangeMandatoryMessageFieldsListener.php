@@ -14,23 +14,23 @@ namespace Fenepedia\ContaoKlickTippGateway\EventListener\DataContainer;
 
 use Contao\CoreBundle\ServiceAnnotation\Callback;
 use Contao\DataContainer;
-use NotificationCenter\Model\Message;
+use Doctrine\DBAL\Connection;
 
 /**
  * @Callback(table="tl_nc_message", target="config.onload")
  */
 class ChangeMandatoryMessageFieldsListener
 {
+    public function __construct(private readonly Connection $db)
+    {
+    }
+
     public function __invoke(DataContainer $dc): void
     {
-        $message = Message::findById($dc->id);
-
-        if (null === $message) {
+        if (!$this->db->fetchOne("SELECT TRUE FROM tl_nc_message WHERE id = ? AND kt_action = 'tag'", [$dc->id])) {
             return;
         }
 
-        if ('tag' === $message->kt_action) {
-            $GLOBALS['TL_DCA']['tl_nc_message']['fields']['kt_tag']['eval']['mandatory'] = true;
-        }
+        $GLOBALS['TL_DCA']['tl_nc_message']['fields']['kt_tag']['eval']['mandatory'] = true;
     }
 }

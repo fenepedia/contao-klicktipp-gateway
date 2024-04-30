@@ -2,94 +2,127 @@
 
 declare(strict_types=1);
 
-/*
- * This file is part of the Contao Klick-Tipp Gateway extension.
- *
- * (c) fenepedia
- *
- * @license LGPL-3.0-or-later
- */
-
 namespace Fenepedia\ContaoKlickTippGateway\Gateway;
 
 use Contao\StringUtil;
-use Contao\System;
 use Contao\Validator;
+use Fenepedia\ContaoKlickTippGateway\Config\KlickTippConfig;
 use Fenepedia\ContaoKlickTippGateway\Exception\KlickTippGatewayException;
+use Fenepedia\ContaoKlickTippGateway\Parcel\Stamp\KlickTippConfigStamp;
 use Fenepedia\ContaoKlickTippGateway\Util;
 use Kazin8\KlickTipp\Connector;
-use NotificationCenter\Gateway\GatewayInterface;
-use NotificationCenter\Model\Message;
+use Psr\Log\LoggerInterface;
+use Terminal42\NotificationCenterBundle\Exception\Parcel\CouldNotDeliverParcelException;
+use Terminal42\NotificationCenterBundle\Gateway\GatewayInterface;
+use Terminal42\NotificationCenterBundle\Parcel\Parcel;
+use Terminal42\NotificationCenterBundle\Parcel\Stamp\GatewayConfigStamp;
+use Terminal42\NotificationCenterBundle\Parcel\Stamp\TokenCollectionStamp;
+use Terminal42\NotificationCenterBundle\Receipt\Receipt;
 
-class KlickTippGateway extends \NotificationCenter\Gateway\Base implements GatewayInterface
+class KlickTippGateway implements GatewayInterface
 {
-    public const KT_API_URL = 'https://api.klick-tipp.com';
+    public const NAME = 'klicktipp';
 
-    /**
-     * @var Connector
-     */
-    private $ktConnector;
+    public function __construct(
+        private readonly Connector $connector,
+        private readonly LoggerInterface $contaoGeneralLogger,
+        private readonly LoggerInterface $contaoErrorLogger,
+    ) {
+    }
 
-    public function send(Message $message, array $tokens, $language = '')
+    public function getName(): string
+    {
+        return self::NAME;
+    }
+
+    public function sealParcel(Parcel $parcel): Parcel
+    {
+        return $parcel
+            ->withStamp($this->createKlickTippConfigStamp($parcel))
+            ->seal()
+        ;
+    }
+
+    public function sendParcel(Parcel $parcel): Receipt
     {
         try {
-            switch ($message->kt_action) {
-                case 'subscribe': return $this->subscribe($message, $tokens); break;
-                case 'subscriber_update': return $this->subscriberUpdate($message, $tokens); break;
-                case 'tag': return $this->tag($message, $tokens); break;
-                default: throw new KlickTippGatewayException('Action "'.$message->kt_action.'" is currently not implemented.');
-            }
-        } catch (KlickTippGatewayException $e) {
-            /** @var \Symfony\Component\HttpKernel\Kernel $kernel */
-            $kernel = System::getContainer()->get('kernel');
-            if ($kernel->isDebug()) {
-                throw $e;
-            }
-            System::log($e->getMessage(), __METHOD__, TL_ERROR);
+            $this->loginConnector($parcel);
+            $config = $parcel->getStamp(KlickTippConfigStamp::class)->klickTippConfig;
 
-            return false;
+            match ($action = $config->getAction()) {
+                'subscribe' => $this->subscribe($config),
+                'subscriber_update' => $this->subscriberUpdate($config),
+                'tag' => $this->tag($config),
+                default => throw new KlickTippGatewayException('Action "'.$action.'" is not implemented.'),
+            };
+
+            return Receipt::createForSuccessfulDelivery($parcel);
+        } catch (\Throwable $e) {
+            $this->contaoErrorLogger->error('Klick-Tipp API Request failed: '.$e->getMessage(), ['exception' => $e]);
+
+            return Receipt::createForUnsuccessfulDelivery(
+                $parcel,
+                CouldNotDeliverParcelException::becauseOfGatewayException(self::NAME, exception: $e),
+            );
         }
     }
 
-    protected function subscribe(Message $message, array $tokens): bool
+    private function createKlickTippConfigStamp(Parcel $parcel): KlickTippConfigStamp
     {
-        $email = Util::recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
+        $messageConfig = $parcel->getMessageConfig();
+        $tokens = $parcel->getStamp(TokenCollectionStamp::class)->tokenCollection->forSimpleTokenParser();
+        $email = Util::recursiveReplaceTokensAndTags($messageConfig->getString('kt_email'), $tokens);
 
-        if (empty($email) || !Validator::isEmail($email)) {
-            throw new KlickTippGatewayException('Invalid email address given.');
+        if (!$email || !Validator::isEmail($email)) {
+            throw new KlickTippGatewayException('Invalid email address "'.$email.'" given.');
         }
 
-        $listId = Util::recursiveReplaceTokensAndTags((string) $message->kt_list_id, $tokens) ?: 0;
-        $tagId = $this->getTagId($message, $tokens) ?: 0;
-        $fields = $this->getParameters($message, $tokens);
+        $parameters = [];
 
-        $kt = $this->getConnector();
-        $kt->subscribe($email, $listId, $tagId, $fields);
-        $this->checkError($kt);
+        foreach (StringUtil::deserialize($messageConfig->getString('kt_parameters'), true) as $param) {
+            $key = Util::recursiveReplaceTokensAndTags((string) $param['key'], $tokens);
+            $value = Util::recursiveReplaceTokensAndTags((string) $param['value'], $tokens);
 
-        return true;
+            // Do some type casting
+            if (is_numeric($value)) {
+                $value = (float) $value;
+            }
+
+            $parameters[$key] = $value;
+        }
+
+        return KlickTippConfigStamp::fromArray([
+            'email' => $email,
+            'action' => $messageConfig->getString('kt_action'),
+            'list' => $messageConfig->getString('kt_list_id'),
+            'tag' => $messageConfig->getString('kt_tag'),
+            'parameters' => $parameters,
+        ]);
     }
 
-    protected function subscriberUpdate(Message $message, array $tokens): bool
+    private function subscribe(KlickTippConfig $config): void
     {
-        $email = Util::recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
+        $tagId = $this->getTagId($config->getTag()) ?: 0;
 
-        if (empty($email) || !Validator::isEmail($email)) {
-            throw new KlickTippGatewayException('Invalid email address given.');
+        $this->contaoGeneralLogger->info('Adding Klick-Tipp subscriber "'.$config->getEmail().'" (tag ID "'.$tagId.'", parameters: '.json_encode($config->getParameters(), JSON_THROW_ON_ERROR).').');
+        $this->connector->subscribe($config->getEmail(), $config->getList(), $tagId, $config->getParameters());
+        $this->checkError();
+    }
+
+    private function subscriberUpdate(KlickTippConfig $config): void
+    {
+        $email = $config->getEmail();
+
+        $subscriberId = $this->connector->subscriber_search($email);
+        $this->checkError();
+
+        if (!$subscriberId) {
+            $this->contaoGeneralLogger->info('Could not find Klick-Tipp subscriber with email "'.$email.'".');
+
+            return;
         }
 
-        $kt = $this->getConnector();
-
-        $subscriberId = $kt->subscriber_search($email);
-        $this->checkError($kt);
-
-        if (empty($subscriberId)) {
-            System::log('Could not find Klick-Tipp subscriber with email "'.$email.'"', __METHOD__, TL_GENERAL);
-
-            return true;
-        }
-
-        $params = $this->getParameters($message, $tokens);
+        $params = $config->getParameters();
 
         // Check if a new email address should be submitted (#5)
         $newemail = '';
@@ -99,65 +132,50 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
             unset($params['email']);
         }
 
-        System::log('Updating Klick-Tipp subscriber "'.$subscriberId.'" ('.$email.') with '.json_encode($params), __METHOD__, TL_GENERAL);
-        $kt->subscriber_update($subscriberId, $params, $newemail);
-        $this->checkError($kt);
-
-        return true;
+        $this->contaoGeneralLogger->info('Updating Klick-Tipp subscriber "'.$subscriberId.'" ('.$email.') with '.json_encode($params, JSON_THROW_ON_ERROR));
+        $this->connector->subscriber_update($subscriberId, $params, $newemail);
+        $this->checkError();
     }
 
-    protected function tag(Message $message, array $tokens): bool
+    private function tag(KlickTippConfig $config): void
     {
-        $email = Util::recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
+        $tagId = $this->getTagId($config->getTag());
 
-        if (empty($email) || !Validator::isEmail($email)) {
-            throw new KlickTippGatewayException('Invalid email address given.');
-        }
-
-        $tagId = $this->getTagId($message, $tokens);
-
-        if (empty($tagId)) {
+        if (!$tagId) {
             throw new KlickTippGatewayException('No tag given.');
         }
 
-        System::log('Tagging Klick-Tipp subscriber "'.$email.'" with tag ID "'.$tagId.'"', __METHOD__, TL_GENERAL);
-        $kt = $this->getConnector();
-        $kt->tag($email, $tagId);
-        $this->checkError($kt);
+        $email = $config->getEmail();
 
-        return true;
+        $this->contaoGeneralLogger->info('Tagging Klick-Tipp subscriber "'.$email.'" with tag ID "'.$tagId.'".');
+        $this->connector->tag($email, $tagId);
+        $this->checkError();
     }
 
-    protected function getConnector(): Connector
+    private function loginConnector(Parcel $parcel): void
     {
-        if (null !== $this->ktConnector) {
-            return $this->ktConnector;
-        }
+        $this->checkError();
 
-        $kt = new Connector(self::KT_API_URL);
-        $this->checkError($kt);
+        $gatewayConfig = $parcel->getStamp(GatewayConfigStamp::class)->gatewayConfig;
 
-        $gateway = $this->getModel();
-        $kt->login($gateway->kt_api_username, $gateway->kt_api_password);
-        $this->checkError($kt);
+        $this->connector->login($gatewayConfig->getString('kt_api_username'), $gatewayConfig->getString('kt_api_password'));
 
-        $this->ktConnector = $kt;
-
-        return $this->ktConnector;
+        $this->checkError();
     }
 
-    protected function checkError(Connector $kt): void
+    private function checkError(): void
     {
-        if (!empty($error = $kt->get_last_error())) {
+        if ($error = $this->connector->get_last_error()) {
             throw new KlickTippGatewayException(Connector::class.': '.$error);
         }
     }
 
-    private function getTagId(Message $message, array $tokens): ?string
+    /**
+     * Returns the numeric KlickTipp ID for a given tag.
+     */
+    private function getTagId(string $tag): string|null
     {
-        $tag = Util::recursiveReplaceTokensAndTags((string) $message->kt_tag, $tokens);
-
-        if (empty($tag)) {
+        if (!$tag) {
             return null;
         }
 
@@ -165,13 +183,11 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
             return $tag;
         }
 
-        $kt = $this->getConnector();
+        /** @var array<string, string> $tags */
+        $tags = $this->connector->tag_index();
+        $this->checkError();
 
-        /** @var array $tags */
-        $tags = $kt->tag_index();
-        $this->checkError($kt);
-
-        if (empty($tags)) {
+        if (!$tags) {
             throw new KlickTippGatewayException('No tags defined.');
         }
 
@@ -182,25 +198,5 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
         }
 
         return $tagId;
-    }
-
-    private function getParameters(Message $message, array $tokens): ?array
-    {
-        $messageParams = StringUtil::deserialize($message->kt_parameters, true);
-        $processedParams = [];
-
-        foreach ($messageParams as $param) {
-            $key = Util::recursiveReplaceTokensAndTags((string) $param['key'], $tokens);
-            $value = Util::recursiveReplaceTokensAndTags((string) $param['value'], $tokens);
-
-            // Do some type casting
-            if (is_numeric($value)) {
-                $value = (float) $value;
-            }
-
-            $processedParams[$key] = $value;
-        }
-
-        return $processedParams;
     }
 }
