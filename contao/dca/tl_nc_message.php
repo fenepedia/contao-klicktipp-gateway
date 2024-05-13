@@ -10,6 +10,8 @@ declare(strict_types=1);
  * @license LGPL-3.0-or-later
  */
 
+use Terminal42\NotificationCenterBundle\Token\TokenContext;
+
 $GLOBALS['TL_DCA']['tl_nc_message']['fields']['kt_action'] = [
     'exclude' => true,
     'inputType' => 'select',
@@ -26,6 +28,7 @@ $GLOBALS['TL_DCA']['tl_nc_message']['fields']['kt_email'] = [
     'inputType' => 'text',
     'eval' => ['mandatory' => true, 'maxlength' => 255, 'tl_class' => 'clr w50'],
     'exclude' => true,
+    'nc_context' => TokenContext::Email,
     'sql' => ['type' => 'string', 'length' => 255, 'default' => ''],
 ];
 
