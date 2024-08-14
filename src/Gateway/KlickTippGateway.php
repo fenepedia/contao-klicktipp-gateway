@@ -11,7 +11,6 @@ use Contao\Validator;
 use Fenepedia\ContaoKlickTippGateway\Config\KlickTippConfig;
 use Fenepedia\ContaoKlickTippGateway\Exception\KlickTippGatewayException;
 use Fenepedia\ContaoKlickTippGateway\Parcel\Stamp\KlickTippConfigStamp;
-use Haste\Util\StringUtil as HasteStringUtil;
 use Kazin8\KlickTipp\Connector;
 use Psr\Log\LoggerInterface;
 use Terminal42\NotificationCenterBundle\Exception\Parcel\CouldNotDeliverParcelException;
@@ -30,7 +29,7 @@ class KlickTippGateway implements GatewayInterface
         private readonly Connector $connector,
         private readonly LoggerInterface $contaoGeneralLogger,
         private readonly LoggerInterface $contaoErrorLogger,
-        private readonly StringParser|null $stringParser = null,
+        private readonly StringParser $stringParser,
     ) {
     }
 
@@ -77,7 +76,7 @@ class KlickTippGateway implements GatewayInterface
 
         $messageConfig = $parcel->getMessageConfig();
         $tokens = $parcel->getStamp(TokenCollectionStamp::class)->tokenCollection->forSimpleTokenParser();
-        $email = $this->recursiveReplaceTokensAndTags($messageConfig->getString('kt_email'), $tokens);
+        $email = $this->stringParser->recursiveReplaceTokensAndTags($messageConfig->getString('kt_email'), $tokens);
 
         if (!$email || !Validator::isEmail($email)) {
             throw new KlickTippGatewayException('Invalid email address "'.$email.'" given.');
@@ -86,8 +85,8 @@ class KlickTippGateway implements GatewayInterface
         $parameters = [];
 
         foreach (StringUtil::deserialize($messageConfig->getString('kt_parameters'), true) as $param) {
-            $key = $this->recursiveReplaceTokensAndTags((string) $param['key'], $tokens);
-            $value = $this->recursiveReplaceTokensAndTags((string) $param['value'], $tokens);
+            $key = $this->stringParser->recursiveReplaceTokensAndTags((string) $param['key'], $tokens);
+            $value = $this->stringParser->recursiveReplaceTokensAndTags((string) $param['value'], $tokens);
 
             // Do some type casting
             if (is_numeric($value)) {
@@ -204,21 +203,5 @@ class KlickTippGateway implements GatewayInterface
         }
 
         return $tagId;
-    }
-
-    /**
-     * Compatibility layer to support both codefog/contao-haste v4 and v5.
-     */
-    private function recursiveReplaceTokensAndTags(string $text, array $tokens, int $textFlags = 0): string
-    {
-        if ($this->stringParser) {
-            return $this->stringParser->recursiveReplaceTokensAndTags($text, $tokens, $textFlags);
-        }
-
-        if (class_exists(HasteStringUtil::class)) {
-            return HasteStringUtil::recursiveReplaceTokensAndTags($text, $tokens, $textFlags);
-        }
-
-        throw new \RuntimeException('Cannot replace tokens and tags due to missing dependencies.');
     }
 }
