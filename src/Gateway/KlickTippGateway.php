@@ -16,7 +16,6 @@ use Contao\StringUtil;
 use Contao\System;
 use Contao\Validator;
 use Fenepedia\ContaoKlickTippGateway\Exception\KlickTippGatewayException;
-use Fenepedia\ContaoKlickTippGateway\Util;
 use Kazin8\KlickTipp\Connector;
 use NotificationCenter\Gateway\GatewayInterface;
 use NotificationCenter\Model\Message;
@@ -25,18 +24,18 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 {
     public const KT_API_URL = 'https://api.klick-tipp.com';
 
-    /**
-     * @var Connector
-     */
-    private $ktConnector;
+    private ?Connector $ktConnector = null;
 
     public function send(Message $message, array $tokens, $language = '')
     {
         try {
             switch ($message->kt_action) {
-                case 'subscribe': return $this->subscribe($message, $tokens); break;
-                case 'subscriber_update': return $this->subscriberUpdate($message, $tokens); break;
-                case 'tag': return $this->tag($message, $tokens); break;
+                case 'subscribe': return $this->subscribe($message, $tokens);
+                    break;
+                case 'subscriber_update': return $this->subscriberUpdate($message, $tokens);
+                    break;
+                case 'tag': return $this->tag($message, $tokens);
+                    break;
                 default: throw new KlickTippGatewayException('Action "'.$message->kt_action.'" is currently not implemented.');
             }
         } catch (KlickTippGatewayException $e) {
@@ -53,13 +52,13 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
     protected function subscribe(Message $message, array $tokens): bool
     {
-        $email = Util::recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
+        $email = $this->recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
 
         if (empty($email) || !Validator::isEmail($email)) {
             throw new KlickTippGatewayException('Invalid email address given.');
         }
 
-        $listId = Util::recursiveReplaceTokensAndTags((string) $message->kt_list_id, $tokens) ?: 0;
+        $listId = $this->recursiveReplaceTokensAndTags((string) $message->kt_list_id, $tokens) ?: 0;
         $tagId = $this->getTagId($message, $tokens) ?: 0;
         $fields = $this->getParameters($message, $tokens);
 
@@ -72,7 +71,7 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
     protected function subscriberUpdate(Message $message, array $tokens): bool
     {
-        $email = Util::recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
+        $email = $this->recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
 
         if (empty($email) || !Validator::isEmail($email)) {
             throw new KlickTippGatewayException('Invalid email address given.');
@@ -108,7 +107,7 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
     protected function tag(Message $message, array $tokens): bool
     {
-        $email = Util::recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
+        $email = $this->recursiveReplaceTokensAndTags((string) $message->kt_email, $tokens);
 
         if (empty($email) || !Validator::isEmail($email)) {
             throw new KlickTippGatewayException('Invalid email address given.');
@@ -155,7 +154,7 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
 
     private function getTagId(Message $message, array $tokens): ?string
     {
-        $tag = Util::recursiveReplaceTokensAndTags((string) $message->kt_tag, $tokens);
+        $tag = $this->recursiveReplaceTokensAndTags((string) $message->kt_tag, $tokens);
 
         if (empty($tag)) {
             return null;
@@ -190,8 +189,8 @@ class KlickTippGateway extends \NotificationCenter\Gateway\Base implements Gatew
         $processedParams = [];
 
         foreach ($messageParams as $param) {
-            $key = Util::recursiveReplaceTokensAndTags((string) $param['key'], $tokens);
-            $value = Util::recursiveReplaceTokensAndTags((string) $param['value'], $tokens);
+            $key = $this->recursiveReplaceTokensAndTags((string) $param['key'], $tokens);
+            $value = $this->recursiveReplaceTokensAndTags((string) $param['value'], $tokens);
 
             // Do some type casting
             if (is_numeric($value)) {

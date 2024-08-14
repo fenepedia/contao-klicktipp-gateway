@@ -23,7 +23,7 @@
         }
     ],
     "require": {
-        "php": ">=7.1",
+        "php": ">=7.4",
         "codefog/contao-haste": "^4.25 || ^5.1",
         "contao/core-bundle": "^4.9",
         "kazin8/klick-tipp": "^1.1",
@@ -49,7 +49,8 @@
     "config": {
         "allow-plugins": {
             "contao-components/installer": true,
-            "contao-community-alliance/composer-plugin": true
+            "contao-community-alliance/composer-plugin": true,
+            "php-http/discovery": false
         }
     }
 }
