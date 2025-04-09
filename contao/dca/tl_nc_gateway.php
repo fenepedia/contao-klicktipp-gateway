@@ -18,7 +18,7 @@ $GLOBALS['TL_DCA']['tl_nc_gateway']['fields']['kt_api_username'] = [
 ];
 
 $GLOBALS['TL_DCA']['tl_nc_gateway']['fields']['kt_api_password'] = [
-    'inputType' => 'textStore',
+    'inputType' => 'password',
     'eval' => ['mandatory' => true, 'maxlength' => 64, 'tl_class' => 'w50', 'decodeEntities' => true, 'preserveTags' => true],
     'exclude' => true,
     'sql' => ['type' => 'string', 'length' => 64, 'default' => ''],
