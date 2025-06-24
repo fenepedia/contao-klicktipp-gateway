@@ -120,7 +120,7 @@ class KlickTippGateway implements GatewayInterface
     {
         $apiKey = $config->getApiKey() ?: '';
 
-        $this->contaoGeneralLogger->info('Adding Klick-Tipp over API-Listbuilding "'.$config->getEmail().'" (apiKey "'.$apiKey.'", parameters: '.json_encode($config->getParameters(), JSON_THROW_ON_ERROR).').');
+        $this->contaoGeneralLogger->info('Adding Klick-Tipp subscriber over API-Listbuilding "'.$config->getEmail().'" (apiKey "'.$apiKey.'", parameters: '.json_encode($config->getParameters(), JSON_THROW_ON_ERROR).').');
         $this->connector->signin($apiKey, $config->getEmail(), $config->getParameters());
         $this->checkError();
     }
