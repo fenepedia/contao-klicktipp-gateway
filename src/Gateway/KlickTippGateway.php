@@ -56,6 +56,7 @@ class KlickTippGateway implements GatewayInterface
                 'subscribe' => $this->subscribe($config),
                 'subscriber_update' => $this->subscriberUpdate($config),
                 'tag' => $this->tag($config),
+                'signin' => $this->signin($config),
                 default => throw new KlickTippGatewayException('Action "'.$action.'" is not implemented.'),
             };
 
@@ -101,6 +102,7 @@ class KlickTippGateway implements GatewayInterface
             'action' => $messageConfig->getString('kt_action'),
             'list' => $messageConfig->getString('kt_list_id'),
             'tag' => $messageConfig->getString('kt_tag'),
+            'apiKey' => $messageConfig->getString('kt_api_key'),
             'parameters' => $parameters,
         ]);
     }
@@ -111,6 +113,15 @@ class KlickTippGateway implements GatewayInterface
 
         $this->contaoGeneralLogger->info('Adding Klick-Tipp subscriber "'.$config->getEmail().'" (tag ID "'.$tagId.'", parameters: '.json_encode($config->getParameters(), JSON_THROW_ON_ERROR).').');
         $this->connector->subscribe($config->getEmail(), $config->getList(), $tagId, $config->getParameters());
+        $this->checkError();
+    }
+
+    private function signin(KlickTippConfig $config): void
+    {
+        $apiKey = $config->getApiKey() ?: '';
+
+        $this->contaoGeneralLogger->info('Adding Klick-Tipp over API-Listbuilding "'.$config->getEmail().'" (apiKey "'.$apiKey.'", parameters: '.json_encode($config->getParameters(), JSON_THROW_ON_ERROR).').');
+        $this->connector->signin($apiKey, $config->getEmail(), $config->getParameters());
         $this->checkError();
     }
 

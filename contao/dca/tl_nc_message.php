@@ -20,6 +20,7 @@ $GLOBALS['TL_DCA']['tl_nc_message']['fields']['kt_action'] = [
         'subscribe',
         'subscriber_update',
         'tag',
+        'signin',
     ],
     'sql' => ['type' => 'string', 'length' => 64, 'default' => ''],
 ];
@@ -53,8 +54,16 @@ $GLOBALS['TL_DCA']['tl_nc_message']['fields']['kt_list_id'] = [
     'sql' => ['type' => 'string', 'length' => 255, 'default' => ''],
 ];
 
+$GLOBALS['TL_DCA']['tl_nc_message']['fields']['kt_api_key'] = [
+    'inputType' => 'text',
+    'eval' => ['maxlength' => 255, 'tl_class' => 'clr w50'],
+    'exclude' => true,
+    'sql' => ['type' => 'string', 'length' => 255, 'default' => ''],
+];
+
 $GLOBALS['TL_DCA']['tl_nc_message']['palettes']['__selector__'][] = 'kt_action';
 $GLOBALS['TL_DCA']['tl_nc_message']['palettes']['klicktipp'] = '{title_legend},title,gateway;{klicktipp_legend},kt_action;{publish_legend},published';
 $GLOBALS['TL_DCA']['tl_nc_message']['subpalettes']['kt_action_subscribe'] = 'kt_email,kt_list_id,kt_tag,kt_parameters';
+$GLOBALS['TL_DCA']['tl_nc_message']['subpalettes']['kt_action_signin'] = 'kt_email,kt_api_key,kt_parameters';
 $GLOBALS['TL_DCA']['tl_nc_message']['subpalettes']['kt_action_subscriber_update'] = 'kt_email,kt_parameters';
 $GLOBALS['TL_DCA']['tl_nc_message']['subpalettes']['kt_action_tag'] = 'kt_email,kt_tag';

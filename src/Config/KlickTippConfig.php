@@ -55,4 +55,12 @@ class KlickTippConfig extends AbstractConfig
     {
         return $this->getString('list');
     }
+
+    /**
+     * Returns the configured API key for the KlickTipp Listbuilding.
+     */
+    public function getApiKey(): string
+    {
+        return $this->getString('apiKey');
+    }
 }

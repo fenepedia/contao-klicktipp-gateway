@@ -16,3 +16,4 @@ $GLOBALS['TL_LANG']['tl_nc_message']['kt_email'] = ['E-mail address', 'E-mail ad
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_parameters'] = ['Parameters', 'Parameters for API request. Key = KlickTipp | Value = Contao'];
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_tag'] = ['Tag', 'Tag to be added to the subscriber.'];
 $GLOBALS['TL_LANG']['tl_nc_message']['kt_list_id'] = ['Double-Opt-In ID', 'The ID of the double-opt-in process.'];
+$GLOBALS['TL_LANG']['tl_nc_message']['kt_api_key'] = ['API key of the listbuilding', 'Create API listbuilding and enter API key here.'];
